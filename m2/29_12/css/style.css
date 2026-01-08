@@ -1,0 +1,146 @@
+/* Esitlos personalizados Spiderman 5.3.8 */
+
+/* Paleta de colores */
+:root{
+    --spider-verse-pink: #ff6ec4;
+    --spider-verse-purple: #6e00ff;
+    --spider-verse-blue: #00d4ff;
+    --spider-verse-cyan: #00ffe7;
+    --spider-verse-green: #76ff03;
+    --spider-verse-dark: #1a1423;
+    --spider-verse-light: #f8f9fa;
+    --spider-verse-orange: #ff9f00;
+    --spider-verse-magenta: #ff00d4;
+    --spider-verse-yellow: #fff600;
+    --spider-verse-red: #ff0044;
+    --spider-verse-burlywood: #d2b48c;
+    --spider-verse-burgundy: #8f1d1d;
+    --spider-verse-darked: #000000;
+    --spider-verse-lighted: #ffffff;
+}
+
+body{
+    background: linear-gradient(135deg, var(--spider-verse-dark) 0%, var(--spider-verse-darked) 50%, var(--spider-verse-dark) 100%);
+    color: var(--spider-verse-light);
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6{
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--spider-verse-light);
+}
+
+p{
+    line-height: 1.6;
+    font-size: 1.2rem;
+    color: var(--spider-verse-light);
+}
+
+.navbar {
+    background: linear-gradient(135deg,
+            var(--spider-verse-dark) 0%,
+            var(--spider-verse-darked) 50%,
+            var(--spider-verse-dark) 100%);
+    box-shadow: 0px 4px 6px rgba(255, 0, 110, 0.4);
+    z-index: 1030;
+    position: sticky;
+    top: 0;
+}
+
+.navbar-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--spider-verse-light);
+    font-size: 2rem;
+    letter-spacing: 2px;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+    animation: glow-purple 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-purple {
+    from {
+        text-shadow:
+            0 0 8px var(--spider-verse-purple),
+            2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    to {
+        text-shadow:
+            0 0 16px var(--spider-verse-magenta),
+            4px 4px 8px rgba(0, 0, 0, 0.7);
+    }
+}
+
+.nav-link{
+    color: var(--spider-verse-light);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: glow-blue 2s ease-in-out infinite alternate;
+}
+
+.nav-link:hover{
+    color: rgba(255, 0, 110, 0.4);
+    transform: translateY(1px);
+    text-shadow: 0 0 10px var(--spider-verse-magenta);
+}
+
+.hero-section{
+    padding: 50px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+
+.hero-section img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+
+    -webkit-mask-image: linear-gradient(to bottom,
+            transparent 0%,
+            black 15%,
+            black 85%,
+            transparent 100%);
+
+    mask-image: linear-gradient(to bottom,
+            transparent 0%,
+            black 15%,
+            black 85%,
+            transparent 100%);
+}
+
+.btn-spider {
+    background: transparent;
+    border: 2px solid var(--spider-verse-pink);
+    color: var(--spider-verse-pink);
+
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+
+    padding: 0.4rem 1.2rem;
+    border-radius: 30px;
+
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-spider:hover,
+.btn-spider:focus,
+.btn-spider:focus-visible {
+    background: var(--spider-verse-pink);
+    color: var(--spider-verse-darked);
+
+    border-color: var(--spider-verse-pink);
+    outline: none;
+    box-shadow: none;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+    <div class="calculadora">
+        <div class="pantalla" id="pantalla">0</div>
+        
+        <div class="botones">
+                <!--Fila 1-->
+                <button class="btn btn-funcion" onclick="limpiar()">C</button>
+                <button class="btn btn-funcion" onclick="borrar()">⌫</button>
+                <button class="btn btn-operador" onclick="agregarOperador('/')">/</button>
+                <button class="btn btn-operador" onclick="agregarOperador('*')">*</button>
+
+                <!--Fila 2-->
+                <button class="btn btn-numero" onclick="agregarNumero('7')">7</button>
+                <button class="btn btn-numero" onclick="agregarNumero('8')">8</button>
+                <button class="btn btn-numero" onclick="agregarNumero('9')">9</button>
+                <button class="btn btn-operador" onclick="agregarOperador('-')">-</button>
+
+                <!--Fila 3-->
+                <button class="btn btn-numero" onclick="agregarNumero('4')">4</button>
+                <button class="btn btn-numero" onclick="agregarNumero('5')">5</button>
+                <button class="btn btn-numero" onclick="agregarNumero('6')">6</button>
+                <button class="btn btn-operador" onclick="agregarOperador('+')">+</button>
+
+                <!--Fila 4-->
+                <button class="btn btn-numero" onclick="agregarNumero('1')">1</button>
+                <button class="btn btn-numero" onclick="agregarNumero('2')">2</button>
+                <button class="btn btn-numero" onclick="agregarNumero('3')">3</button>
+                <button class="btn btn-igual" onclick="calcular()" style="grid-row: span 2;">=</button>
+
+                <!--Fila 5-->
+                <button class="btn btn-numero" onclick="agregarNumero('0')" style="grid-column: span 2;">0</button>
+                <button class="btn btn-numero" onclick="agregarNumero('.')">.</button>
+                
+        </div>
+    
+    
+    
+    </div>
+        
+
+
+
+
+
+
+
+    <script src="js/funcionalidades.js"></script>
+</body>
+</html>
