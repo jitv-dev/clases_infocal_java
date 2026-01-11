@@ -1,10 +1,10 @@
-// SEGURIDAD: VERIFICAR SESIÓN
+// Redireccion a login si no se inicio sesion
 const paginaActual = window.location.pathname;
 if (!localStorage.getItem('usuarioGuardado') && !paginaActual.includes('index.html')) {
     window.location.href = 'login.html';
 }
 
-// ALERTA DE BOOTSTRAP
+// Alerta Bootstrap
 function mostrarAlerta(mensaje, tipo = 'success') {
     const alertaHTML = `
         <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
@@ -13,21 +13,15 @@ function mostrarAlerta(mensaje, tipo = 'success') {
         </div>
     `;
 
-    const contenedor = document.getElementById('alerta-contenedor');
-    if (contenedor) {
-        contenedor.innerHTML = alertaHTML;
+    $('#alerta-contenedor').html(alertaHTML);
 
-        // Autoeliminar después de 3 segundos
-        setTimeout(() => {
-            const alerta = contenedor.querySelector('.alert');
-            if (alerta) {
-                alerta.remove();
-            }
-        }, 3000);
-    }
+    // Autoeliminar despues de 3 segundos
+    setTimeout(() => {
+        $('#alerta-contenedor .alert').remove();
+    }, 3000);
 }
 
-// MANEJO DE SALDO
+// Manejo de saldo
 function obtenerSaldo() {
     const saldo = localStorage.getItem('saldo');
     return saldo ? parseFloat(saldo) : 20000;
@@ -39,11 +33,7 @@ function guardarSaldo(nuevoSaldo) {
 
 function mostrarSaldo() {
     const saldoActual = obtenerSaldo();
-    const elementosSaldo = document.querySelectorAll('#saldo-actual');
-
-    elementosSaldo.forEach(elemento => {
-        elemento.textContent = saldoActual.toLocaleString('es-CL');
-    });
+    $('#saldo-actual').text(saldoActual.toLocaleString('es-CL'));
 }
 
 function guardarTransaccion(descripcion, monto, esIngreso) {
@@ -64,203 +54,281 @@ function guardarTransaccion(descripcion, monto, esIngreso) {
     localStorage.setItem('historial', JSON.stringify(historial));
 }
 
-function cargarHistorial() {
-    const lista = document.getElementById('lista-transacciones');
-    if (!lista) return;
+function getTipoTransaccion(transaccion) {
+    if (transaccion.descripcion.includes('Depósito')) {
+        return 'Depósito';
+    } else if (transaccion.descripcion.includes('Envío')) {
+        return 'Transferencia enviada';
+    } else if (transaccion.esIngreso) {
+        return 'Transferencia recibida';
+    } else {
+        return 'Compra';
+    }
+}
 
+function cargarHistorial(filtro = 'todos') {
+    // Obtener todas las transacciones del localStorage
     const historial = JSON.parse(localStorage.getItem('historial')) || [];
-    lista.innerHTML = '';
 
-    if (historial.length === 0) {
-        lista.innerHTML = '<p class="text-center text-muted">No hay movimientos registrados.</p>';
+    // Variable para guardar las transacciones filtradas
+    let transaccionesFiltradas = historial;
+
+    // Aplicar el filtro según lo seleccionado
+    if (filtro === 'ingreso') {
+        transaccionesFiltradas = historial.filter(t => t.esIngreso === true);
+    } else if (filtro === 'egreso') {
+        transaccionesFiltradas = historial.filter(t => t.esIngreso === false);
+    }
+
+    // Si no hay transacciones, mostrar mensaje
+    if (transaccionesFiltradas.length === 0) {
+        $('#lista-transacciones').html('<p class="text-center text-muted">No hay movimientos registrados.</p>');
         return;
     }
 
-    historial.forEach(t => {
+    // Construir el HTML con las transacciones
+    let htmlTransacciones = '';
+    transaccionesFiltradas.forEach(t => {
         const signo = t.esIngreso ? '+' : '-';
         const color = t.esIngreso ? 'wallet-amount-positive' : 'wallet-amount-negative';
-        
-        lista.innerHTML += `
+        const tipo = getTipoTransaccion(t);
+
+        htmlTransacciones += `
             <div class="card wallet-card mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="mb-1">${t.descripcion}</h6>
-                            <small class="text-muted">${t.fecha}</small>
+                            <small class="text-muted">${tipo} - ${t.fecha}</small>
                         </div>
                         <h5 class="mb-0 ${color}">${signo}$${t.monto.toLocaleString('es-CL')}</h5>
                     </div>
                 </div>
             </div>`;
     });
+
+    $('#lista-transacciones').html(htmlTransacciones);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+$('#filtro-tipo').change(function () {
+    const filtroSeleccionado = $(this).val();
+    cargarHistorial(filtroSeleccionado);
+});
+
+$(document).ready(function () {
     mostrarSaldo();
     cargarHistorial();
 });
 
-const listaTransacciones = document.getElementById('lista-transacciones');
-
-// Depositar
-const formDeposito = document.getElementById('form-deposito');
-if (formDeposito) {
-    formDeposito.addEventListener('submit', function (e) {
+// Alertas al cambiar en el menu
+$('a[href="deposit.html"]').click(function (e) {
+    if ($(this).parent().hasClass('d-grid')) {
         e.preventDefault();
-
-        const monto = parseFloat(document.getElementById('monto-deposito').value);
-
-        if (monto > 0) {
-            const saldoActual = obtenerSaldo();
-            const nuevoSaldo = saldoActual + monto;
-
-            guardarSaldo(nuevoSaldo);
-            mostrarSaldo();
-
-            // Guardar en historial
-            guardarTransaccion('Depósito en cuenta', monto, true);
-
-            mostrarAlerta(`¡Depósito exitoso! Nuevo saldo: $${nuevoSaldo.toLocaleString('es-CL')}`);
-            formDeposito.reset();
-        }
-    });
-}
-
-// Enviar platita
-const formEnvio = document.getElementById('form-envio');
-let transaccionPendiente = null; 
-
-if (formEnvio) {
-    formEnvio.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const select = document.getElementById('select-contacto');
-        const selectedOption = select.options[select.selectedIndex];
-        const nombreContacto = selectedOption.getAttribute('data-nombre');
-        const monto = parseFloat(document.getElementById('monto-envio').value);
-        const saldoActual = obtenerSaldo();
-
-        if (!select.value) {
-            mostrarAlerta('Por favor selecciona un contacto', 'warning');
-            return;
-        }
-
-        if (monto > saldoActual) {
-            mostrarAlerta('Saldo insuficiente', 'danger');
-            return;
-        }
-
-        if (monto <= 0 || isNaN(monto)) {
-            mostrarAlerta('El monto debe ser mayor a 0', 'warning');
-            return;
-        }
-
-        // Guardamos los datos temporalmente y mostramos el modal
-        transaccionPendiente = {
-            nombre: nombreContacto,
-            monto: monto,
-            saldoActual: saldoActual
-        };
-
-        document.getElementById('conf-nombre').textContent = nombreContacto;
-        document.getElementById('conf-monto').textContent = `$${monto.toLocaleString('es-CL')}`;
-
-        const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEnvio'));
-        modal.show();
-    });
-}
-
-// Lógica del botón de confirmación dentro del modal
-const btnConfirmarEnvio = document.getElementById('btn-confirmar-envio');
-if (btnConfirmarEnvio) {
-    btnConfirmarEnvio.addEventListener('click', function() {
-        if (!transaccionPendiente) return;
-
-        const { nombre, monto, saldoActual } = transaccionPendiente;
-        const nuevoSaldo = saldoActual - monto;
-
-        guardarSaldo(nuevoSaldo);
-        mostrarSaldo();
-
-        // Guardar en historial
-        guardarTransaccion(`Envío a ${nombre}`, monto, false);
-
-        mostrarAlerta(`¡Envío exitoso! Nuevo saldo: $${nuevoSaldo.toLocaleString('es-CL')}`);
-        
-        // Cerrar modal y limpiar
-        const modalEl = document.getElementById('modalConfirmarEnvio');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-        
-        if (formEnvio) formEnvio.reset();
-        transaccionPendiente = null;
-    });
-}
-
-// contacto
-const formContacto = document.getElementById('form-nuevo-contacto');
-if (formContacto) {
-    formContacto.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        // valores del formulario
-        const nombre = document.getElementById('nombre-contacto').value;
-        const alias = document.getElementById('alias-contacto').value;
-        const banco = document.getElementById('banco-contacto').value;
-
-        const contacto = { nombre, alias, banco };
-        const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
-        contactos.push(contacto);
-
-        // Guardar la lista de contactos en el localStorage
-        localStorage.setItem('contactos', JSON.stringify(contactos));
-
-        // Crear una nueva opción en el select de contactos
-        const select = document.getElementById('select-contacto');
-        const option = document.createElement('option');
-        option.value = Date.now().toString();
-        option.setAttribute('data-nombre', nombre);
-        option.textContent = `${nombre} - Alias: ${alias} - ${banco}`;
-        select.appendChild(option);
-
-        formContacto.reset();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarContacto'));
-        modal.hide();
-
-        mostrarAlerta('¡Contacto agregado exitosamente!');
-    });
-}
-
-// Cargar la lista de contactos en el select de contactos al cargar la página
-window.addEventListener('load', function () {
-    const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
-
-    const select = document.getElementById('select-contacto');
-    if (select) {
-        contactos.forEach((contacto, index) => {
-            const option = document.createElement('option');
-            option.value = `guardado-${index}`;
-            option.setAttribute('data-nombre', contacto.nombre);
-            option.textContent = `${contacto.nombre} - Alias: ${contacto.alias} - ${contacto.banco}`;
-            select.appendChild(option);
-        });
+        mostrarAlerta('Redirigiendo a depositar...', 'info');
+        setTimeout(() => {
+            window.location.href = 'deposit.html';
+        }, 1000);
     }
 });
 
-// Cerrar sesion
-const btnCerrarSesion = document.getElementById('btn-logout');
-if (btnCerrarSesion) {
-    btnCerrarSesion.addEventListener('click', function() {
-        localStorage.removeItem('usuarioGuardado');
+$('a[href="sendmoney.html"]').click(function (e) {
+    if ($(this).parent().hasClass('d-grid')) {
+        e.preventDefault();
+        mostrarAlerta('Redirigiendo a enviar dinero...', 'info');
+        setTimeout(() => {
+            window.location.href = 'sendmoney.html';
+        }, 1000);
+    }
+});
+
+$('a[href="transactions.html"]').click(function (e) {
+    if ($(this).parent().hasClass('d-grid')) {
+        e.preventDefault();
+        mostrarAlerta('Redirigiendo a últimos movimientos...', 'info');
+        setTimeout(() => {
+            window.location.href = 'transactions.html';
+        }, 1000);
+    }
+});
+
+
+// Depositar
+$('#form-deposito').submit(function (e) {
+    e.preventDefault();
+    const monto = parseFloat($('#monto-deposito').val());
+    if (monto > 0) {
+        const saldoActual = obtenerSaldo();
+        const nuevoSaldo = saldoActual + monto;
+
+        guardarSaldo(nuevoSaldo);
+        mostrarSaldo();
+        guardarTransaccion('Depósito en cuenta', monto, true);
+        mostrarAlerta(`¡Depósito exitoso! Nuevo saldo: $${nuevoSaldo.toLocaleString('es-CL')}`);
+        $('#form-deposito')[0].reset();
+    }
+
+    // No me gusta como queda, pero el ejercicio lo pide
+    setTimeout(() => {
+        window.location.href = 'menu.html';
+    }, 2000)
+});
+
+// Enviar platita
+let transaccionPendiente = null; 
+
+$('#form-envio').submit(function (e) {
+    e.preventDefault();
+
+    const select = $('#select-contacto')
+    const nombreContacto = select.find('option:selected').data('nombre');
+    const monto = parseFloat($('#monto-envio').val());
+    const saldoActual = obtenerSaldo();
+
+    if (!select.val()) {
+        mostrarAlerta('Por favor selecciona un contacto', 'warning');
+        return;
+    }
+
+    if (monto > saldoActual) {
+        mostrarAlerta('Saldo insuficiente', 'danger');
+        return;
+    }
+
+    if (monto <= 0 || isNaN(monto)) {
+        mostrarAlerta('El monto debe ser mayor a 0', 'warning');
+        return;
+    }
+
+    transaccionPendiente = {
+        nombre: nombreContacto,
+        monto: monto,
+        saldoActual: saldoActual
+    };
+
+    $('#conf-nombre').text(nombreContacto);
+    $('#conf-monto').text(`$${monto.toLocaleString('es-CL')}`);
+
+    const modal = new bootstrap.Modal($('#modalConfirmarEnvio')[0]);
+    modal.show();
+});
+
+
+// Boton confirmar envio saldo
+$('#btn-confirmar-envio').click(function() {
+    if (!transaccionPendiente) return;
+
+    const { nombre, monto, saldoActual } = transaccionPendiente;
+    const nuevoSaldo = saldoActual - monto;
+
+    guardarSaldo(nuevoSaldo);
+    mostrarSaldo();
+    guardarTransaccion(`Envío a ${nombre}`, monto, false);
+    mostrarAlerta(`¡Envío exitoso! Nuevo saldo: $${nuevoSaldo.toLocaleString('es-CL')}`);
+
+    // Cerrar modal y limpiar
+    const modalEl = $('#modalConfirmarEnvio')[0];
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    $('#form-envio')[0].reset();
+    transaccionPendiente = null;
+});
+
+
+// Agregar contacto
+$('#form-nuevo-contacto').submit(function (e) {
+    e.preventDefault();
+    const nombre = $('#nombre-contacto').val();
+    const alias = $('#alias-contacto').val();
+    const cbu = $('#cbu-contacto').val();
+    const banco = $('#banco-contacto').val();
+
+    // Validacion CBU 22 digitos
+    if (cbu.length !== 22 || !/^\d+$/.test(cbu)) {
+        mostrarAlerta('El CBU debe tener exactamente 22 dígitos', 'warning');
+        return;
+    }
+
+    const contacto = { nombre, alias, banco };
+    const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
+    contactos.push(contacto);
+    localStorage.setItem('contactos', JSON.stringify(contactos));
+
+    const select = $('#select-contacto');
+    const option = $('<option>')
+        .val(Date.now().toString())
+        .attr('data-nombre', nombre)
+        .text(`${nombre} - Alias: ${alias} - ${banco}`);
+
+    select.append(option);
+
+    $('#form-nuevo-contacto')[0].reset();
+
+    const modal = bootstrap.Modal.getInstance($('#modalAgregarContacto')[0]);
+    modal.hide();
+
+    mostrarAlerta('¡Contacto agregado exitosamente!');
+});
+
+// Buscador
+$('#buscar-contacto').on('input', function () {
+    const terminoBusqueda = $(this).val().toLowerCase();
+    const select = $('#select-contacto');
+
+    // Resetear
+    select.val('');
+    $('#btn-enviar-dinero').hide();
+
+    // Filtrar opciones
+    select.find('option').each(function () {
+        const texto = $(this).text().toLowerCase();
+        const valor = $(this).val();
+
+        if (valor === '' || texto.includes(terminoBusqueda)) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
     });
-}
+});
+
+// Mostrar u ocultar boton envio dinero
+$('#select-contacto').change(function () {
+    const valorSeleccionado = $(this).val();
+
+    if (valorSeleccionado !== '') {
+        $('#btn-enviar-dinero').fadeIn(300);
+        $(this).addClass('contacto-seleccionado');
+    } else {
+        $('#btn-enviar-dinero').fadeOut(300);
+        $(this).removeClass('contacto-seleccionado');
+    }
+});
+
+// Cargar contactos al iniciar
+$(window).on('load', function () {
+    const contactos = JSON.parse(localStorage.getItem('contactos')) || [];
+    const select = $('#select-contacto');
+
+    contactos.forEach((contacto, index) => {
+        const option = $('<option>')
+            .val(`guardado-${index}`)
+            .attr('data-nombre', contacto.nombre)
+            .attr('data-alias', contacto.alias)
+            .text(`${contacto.nombre} - Alias: ${contacto.alias} - ${contacto.banco}`);
+
+        select.append(option);
+    });
+});
+
+// Cerrar sesion
+$('#btn-logout').click(function () {
+    localStorage.removeItem('usuarioGuardado');
+});
 
 // Borrar histoirial
-const btnBorrarHistorial = document.getElementById('btn-borrar-historial');
-if (btnBorrarHistorial) {
-    btnBorrarHistorial.addEventListener('click', function() {
-        localStorage.removeItem('historial');
-        cargarHistorial();
-        mostrarAlerta('Historial eliminado correctamente.');
-    });
-}
+$('#btn-borrar-historial').click(function () {
+    localStorage.removeItem('historial');
+    cargarHistorial();
+    mostrarAlerta('Historial eliminado correctamente.');
+});
