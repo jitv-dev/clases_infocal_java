@@ -1,4 +1,4 @@
-# 💳 Billetera Digital
+# 💳 Alke Wallet
 
 Aplicación web de billetera virtual desarrollada como proyecto educativo para el aprendizaje de jQuery y manipulación del DOM.
 
@@ -25,13 +25,13 @@ La aplicación simula una billetera digital básica que permite a los usuarios g
 - **CSS3** - Estilos personalizados con variables CSS
 - **Bootstrap 5.3.8** - Framework CSS para diseño responsivo
 - **JavaScript ES6** - Lógica de la aplicación
-- **jQuery 3.6.0** - Manipulación del DOM y eventos
+- **jQuery 3.7.1** - Manipulación del DOM y eventos
 - **LocalStorage** - Persistencia de datos en el navegador
 
 ## 📁 Estructura del Proyecto
 
 ```
-billetera-digital/
+Alke-Wallet/
 │
 ├── index.html              # Página de inicio
 ├── login.html              # Inicio de sesión
@@ -59,12 +59,12 @@ billetera-digital/
 
 1. **Clonar el repositorio**
    ```bash
-   git clone https://github.com/tu-usuario/billetera-digital.git
+   git clone https://github.com/tu-usuario/Alke-Wallet.git
    ```
 
 2. **Navegar al directorio**
    ```bash
-   cd billetera-digital
+   cd Alke Wallet
    ```
 
 3. **Abrir en el navegador**
